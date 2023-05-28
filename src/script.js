@@ -53,22 +53,41 @@ const scene = new THREE.Scene()
 /**
  * Models
  */
-let mixer = null
 const gltfLoader = new GLTFLoader()
+let mixer = null
+let mixerAction = null
 gltfLoader.load(
     '/models/Fox/glTF/Fox.gltf',
     (gltf) =>
     {
-        gltf.scene.scale.set(0.015,0.015,0.015)
-        gltf.scene.position.set(0,-0.65,0)
-        scene.add(gltf.scene)
-        mixer = new THREE.AnimationMixer(gltf.scene)
-        const action = mixer.clipAction(gltf.animations[2])
-        action.play()
+
         console.log(gltf)
         gltf.scene.traverse( function( node ) {
             if ( node.isMesh ) { node.castShadow = true; }
-            } );
+        } );
+        mixer = new THREE.AnimationMixer(gltf.scene)
+
+        let options = {none: ''}
+        gltf.animations.forEach((item)=>{
+            options[item.name] = item
+        })
+
+        const ANIMATION = {
+            'animation': '',
+        }
+        pane.addInput(ANIMATION,'animation',{options: options}).on('change',(ev)=>{
+            if(ANIMATION['animation']){
+                if (mixerAction !== null)
+                    mixer.stopAllAction()
+                mixerAction = mixer.clipAction(ANIMATION['animation'])
+                mixerAction.play()
+            }else{
+                mixer.stopAllAction()
+            }
+        })
+        gltf.scene.scale.set(0.015,0.015,0.015)
+        gltf.scene.position.set(0,-0.65,0)
+        scene.add(gltf.scene)
     }
     )
 
